@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="CSS/admin.css">
+    <title>Admin Page</title>
+    <link rel="website icon" type="png" href="img/LOGO.png">
+</head>
+<body>
+    <h1>Admin Account Remove</h1>
+    <form id="deleteUser  Form">
+        <input type="text" id="usernameToDelete" placeholder="Username yang ingin dihapus" required>
+        <button type="submit">Hapus Akun</button>
+    </form>
+    
+    <div id="userList">
+        <h2>Daftar Pengguna</h2>
+        <ul id="usernames"></ul>
+    </div>
+
+    <p><a href="login.html">Log out</a></p>
+
+    <script src="JavaScript/admin.js"></script>
+    <script src="Sweet-Alert-2/package/dist/sweetalert2.all.min.js"></script>
+</body>
+</html>

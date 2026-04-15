@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BadutZ Restoran</title>
+    <link rel="website icon" type="png" href="img/LOGO.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .menu-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .menu-card {
+            transition: all 0.3s ease;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .order-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .category-active {
+            background-color: #4F46E5;
+            color: white;
+        }
+        .payment-method-active {
+            background-color: #4F46E5;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Menu Section -->
+            <div class="bg-white rounded-lg shadow p-4">
+                <h2 class="text-2xl font-bold mb-4">BadutZ Restoran</h2>
+                
+                <!-- Category Buttons -->
+                <div class="flex gap-2 mb-4 overflow-x-auto pb-2" id="categoryButtons">
+                    <!-- Categories will be added here -->
+                </div>
+
+                <!-- Menu Grid -->
+                <div class="menu-grid" id="menuGrid">
+                    <!-- Menu items will be added here -->
+                </div>
+            </div>
+
+            <!-- Order Section -->
+            <div class="bg-white rounded-lg shadow p-4">
+                <h2 class="text-2xl font-bold mb-4">Detail Pesanan</h2>
+                
+                <!-- Customer Info -->
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="customerName" placeholder="Nama Pelanggan" 
+                           class="flex-1 p-2 border rounded">
+                </div>
+
+                <!-- Order List -->
+                <div class="order-list border-t border-b py-4 mb-4" id="orderList">
+                    <!-- Order items will be added here -->
+                </div>
+
+                <!-- Payment Section -->
+                <div class="space-y-4">
+                    <div class="flex justify-between text-lg font-bold">
+                        <span>Total:</span>
+                        <span id="totalAmount">Rp 0</span>
+                    </div>
+
+                    <!-- Payment Method Section -->
+                    <div class="mb-4">
+                        <h3 class="font-bold mb-2">Metode Pembayaran:</h3>
+                        <div class="flex flex-wrap gap-2" id="paymentMethods">
+                            <button class="payment-method-btn p-2 rounded payment-method-active" data-method="cash">
+                                Tunai
+                            </button>
+                            <button class="payment-method-btn p-2 rounded bg-gray-200" data-method="debit">
+                                Kartu Debit
+                            </button>
+                            <button class="payment-method-btn p-2 rounded bg-gray-200" data-method="credit">
+                                Kartu Kredit
+                            </button>
+                            <button class="payment-method-btn p-2 rounded bg-gray-200" data-method="qris">
+                                QRIS
+                            </button>
+                            <button class="payment-method-btn p-2 rounded bg-gray-200" data-method="ewallet">
+                                E-Wallet
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Cash Payment Fields (visible by default) -->
+                    <div id="cashPaymentFields">
+                        <div class="flex gap-2">
+                            <input type="number" id="paymentAmount" placeholder="Jumlah Pembayaran" 
+                                class="flex-1 p-2 border rounded">
+                        </div>
+
+                        <div class="flex justify-between text-lg font-bold mt-2">
+                            <span>Kembalian:</span>
+                            <span id="changeAmount" class="text-green-600">Rp 0</span>
+                        </div>
+
+                        <!-- Change Details -->
+                        <div id="changeDetails" class="hidden bg-gray-50 rounded-lg p-4 mt-2">
+                            <h3 class="font-bold mb-2">Detail Kembalian</h3>
+                            <div id="changeBreakdown" class="space-y-2">
+                                <!-- Change breakdown will be added here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Digital Payment Fields (hidden by default) -->
+                    <div id="digitalPaymentFields" class="hidden">
+                        <div class="flex gap-2">
+                            <input type="text" id="cardNumber" placeholder="Nomor Kartu/ID Transaksi" 
+                                class="flex-1 p-2 border rounded">
+                        </div>
+                        <div id="cardFields" class="hidden mt-2">
+                            <div class="flex gap-2">
+                                <input type="text" id="cardHolder" placeholder="Nama Pemegang Kartu" 
+                                    class="flex-1 p-2 border rounded">
+                                <input type="text" id="cardExpiry" placeholder="MM/YY" 
+                                    class="w-24 p-2 border rounded">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button id="resetButton" 
+                                class="flex-1 p-2 border rounded hover:bg-gray-100">
+                            Reset Pesanan
+                        </button>
+                        <button id="printButton" 
+                                class="flex-1 p-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Bayar
+                        </button>
+                        <button id="logoutButton" class="flex-1 p-2 bg-red-600 text-white rounded hover:bg-red-700">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data menu restoran
+        const menuCategories = {
+            'Food': [
+                { id: 1, name: 'Nasi Goreng', price: 25000, image: 'img/foods/Nasi-Goreng.jpg' },
+                { id: 2, name: 'Mie Goreng', price: 23000, image: 'img/foods/Mie-Goreng.jpg' },
+                { id: 3, name: 'Ayam Goreng', price: 20000, image: 'img/foods/Ayam-Goreng.jpg' },
+                { id: 4, name: 'Sate Ayam', price: 35000, image: 'img/foods/Sate-Ayam.jpeg' },
+                { id: 5, name: 'Sate Kambing', price: 35000, image: 'img/foods/Sate-Kambing.jpg' },
+                { id: 6, name: 'Sate Sapi', price: 35000, image: 'img/foods/Sate-Sapi.jpg' },
+                { id: 7, name: 'Rendang', price: 50000, image: 'img/foods/Rendang.jpg' },
+                { id: 8, name: 'Ayam Bakar', price: 25000, image: 'img/foods/Ayam-Bakar.jpg' },
+                { id: 9, name: 'Ikan Bakar', price: 25000, image: 'img/foods/Ikan-Bakar.jpg' },
+                { id: 10, name: 'Kepiting', price: 250000, image: 'img/foods/Kepiting.jpg' },
+            ],
+            'Minuman': [
+                { id: 11, name: 'Es Teh', price: 5000, image: 'img/drinks/es-teh.jpeg' },
+                { id: 12, name: 'Es Susu', price: 7000, image: 'img/drinks/es-susu.jpeg' },
+                { id: 13, name: 'Es Kopi', price: 10000, image: 'img/drinks/es-kopi.jpg' },
+                { id: 14, name: 'Es Kelapa', price: 10000, image: 'img/drinks/es-kelapa.jpg' },
+                { id: 15, name: 'Es Jeruk', price: 10000, image: 'img/drinks/es-jeruk.png' },
+                { id: 16, name: 'Jus Jambu', price: 15000, image: 'img/drinks/jus-jambu.jpeg' },
+                { id: 17, name: 'Jus Alpukat', price: 15000, image: 'img/drinks/jus-alpukat.png' },
+                { id: 18, name: 'Jus Mangga', price: 15000, image: 'img/drinks/jus-mangga.jpeg' },
+                { id: 19, name: 'Jus Naga', price: 15000, image: 'img/drinks/jus-naga.jpg' },
+                { id: 20, name: 'Es Buah', price: 20000, image: 'img/drinks/es-buah.jpg' },
+            ]
+        };
+
+        const denominations = [100000, 50000, 20000, 10000, 5000, 2000, 1000, 500, 100];
+        let orderItems = [];
+        let activeCategory = 'Food';
+        let activePaymentMethod = 'cash';
+
+        // Initialize the application
+        function initializeApp() {
+            renderCategories();
+            renderMenu();
+            setupEventListeners();
+        }
+
+        // Render category buttons
+        function renderCategories() {
+            const categoryButtons = document.getElementById('categoryButtons');
+            categoryButtons.innerHTML = Object.keys(menuCategories).map(category => `
+                <button class="category-button p-2 rounded ${category === activeCategory ? 'category-active' : 'bg-gray-200'}"
+                        data-category="${category}">
+                    ${category}
+                </button>
+            `).join('');
+        }
+
+        // Render menu items
+        function renderMenu() {
+            const menuGrid = document.getElementById('menuGrid');
+            menuGrid.innerHTML = menuCategories[activeCategory].map(item => `
+                <div class="menu-card border rounded-lg overflow-hidden cursor-pointer" data-id="${item.id}">
+                    <img src="${item.image}" alt="${item.name}" class="w-full h-32 object-cover">
+                    <div class="p-3">
+                        <h3 class="font-medium">${item.name}</h3>
+                        <p class="text-gray-600">Rp ${item.price.toLocaleString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render order items
+        function renderOrder() {
+            const orderList = document.getElementById('orderList');
+            orderList.innerHTML = orderItems.map(item => `
+                <div class="flex items-center gap-3 p-2 border-b">
+                    <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
+                    <div class="flex-1">
+                        <div class="font-medium">${item.name}</div>
+                        <div class="text-gray-600">Rp ${item.price.toLocaleString()}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="quantity-btn p-1 px-2 border rounded" 
+                                data-id="${item.id}" data-action="decrease">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="quantity-btn p-1 px-2 border rounded" 
+                                data-id="${item.id}" data-action="increase">+</button>
+                        <button class="remove-btn p-1 px-2 bg-red-500 text-white rounded" 
+                                data-id="${item.id}">×</button>
+                    </div>
+                </div>
+            `).join('');
+            updateTotals();
+        }
+
+        // Update totals and change
+        function updateTotals() {
+            const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('totalAmount').textContent = `Rp ${total.toLocaleString()}`;
+            
+            if (activePaymentMethod === 'cash') {
+                const payment = parseFloat(document.getElementById('paymentAmount').value) || 0;
+                const change = payment - total;
+                
+                document.getElementById('changeAmount').textContent = `Rp ${change.toLocaleString()}`;
+                document.getElementById('changeAmount').className = change >= 0 ? 'text-green-600' : 'text-red-600';
+
+                // Update change details
+                const changeDetails = document.getElementById('changeDetails');
+                const changeBreakdown = document.getElementById('changeBreakdown');
+                
+                if (change > 0) {
+                    changeDetails.classList.remove('hidden');
+                    let remaining = change;
+                    changeBreakdown.innerHTML = denominations
+                        .filter(d => Math.floor(remaining / d) > 0)
+                        .map(d => {
+                            const count = Math.floor(remaining / d);
+                            remaining %= d;
+                            return `
+                                <div class="flex justify-between">
+                                    <span>Rp ${d.toLocaleString()}</span>
+                                    <span>x ${count} lembar</span>
+                                </div>
+                            `;
+                        }).join('');
+                } else {
+                    changeDetails.classList.add('hidden');
+                }
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Category selection
+            document.getElementById('categoryButtons').addEventListener('click', (e) => {
+                if (e.target.classList.contains('category-button')) {
+                    activeCategory = e.target.dataset.category;
+                    renderCategories();
+                    renderMenu();
+                }
+            });
+
+            // Payment Method selection
+            document.getElementById('paymentMethods').addEventListener('click', (e) => {
+                if (e.target.classList.contains('payment-method-btn')) {
+                    activePaymentMethod = e.target.dataset.method;
+                    updatePaymentMethodUI();
+                }
+            });
+
+            // Menu item selection
+            document.getElementById('menuGrid').addEventListener('click', (e) => {
+                const menuCard = e.target.closest('.menu-card');
+                if (menuCard) {
+                    const id = parseInt(menuCard.dataset.id);
+                    addItemToOrder(id);
+                }
+            });
+
+            // Order item controls
+            document.getElementById('orderList').addEventListener('click', (e) => {
+                if (e.target.classList.contains('quantity-btn')) {
+                    const id = parseInt(e.target.dataset.id);
+                    const action = e.target.dataset.action;
+                    updateQuantity(id, action === 'increase' ? 1 : -1);
+                } else if (e.target.classList.contains('remove-btn')) {
+                    const id = parseInt(e.target.dataset.id);
+                    removeItem(id);
+                }
+            });
+
+            // Payment input
+            document.getElementById('paymentAmount').addEventListener('input', updateTotals);
+
+            // Reset button
+            document.getElementById('resetButton').addEventListener('click', resetOrder);
+
+            document.getElementById('printButton').addEventListener('click', printReceipt);
+
+            // Logout button
+            document.getElementById('logoutButton').addEventListener('click', logout);
+
+            //Login tab
+            function logout() {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Update Payment Method UI
+        function updatePaymentMethodUI() {
+            // Update payment method buttons
+            const paymentButtons = document.querySelectorAll('.payment-method-btn');
+            paymentButtons.forEach(button => {
+                if (button.dataset.method === activePaymentMethod) {
+                    button.classList.add('payment-method-active');
+                    button.classList.remove('bg-gray-200');
+                } else {
+                    button.classList.remove('payment-method-active');
+                    button.classList.add('bg-gray-200');
+                }
+            });
+
+            // Show/hide payment fields based on the active payment method
+            const cashPaymentFields = document.getElementById('cashPaymentFields');
+            const digitalPaymentFields = document.getElementById('digitalPaymentFields');
+            const cardFields = document.getElementById('cardFields');
+
+            if (activePaymentMethod === 'cash') {
+                cashPaymentFields.classList.remove('hidden');
+                digitalPaymentFields.classList.add('hidden');
+            } else {
+                cashPaymentFields.classList.add('hidden');
+                digitalPaymentFields.classList.remove('hidden');
+                
+                // Show card fields for credit and debit cards
+                if (activePaymentMethod === 'credit' || activePaymentMethod === 'debit') {
+                    cardFields.classList.remove('hidden');
+                } else {
+                    cardFields.classList.add('hidden');
+                }
+            }
+        }
+
+        // Add item to order
+        function addItemToOrder(id) {
+            const menuItem = Object.values(menuCategories)
+                .flat()
+                .find(item => item.id === id);
+
+            const existingItem = orderItems.find(item => item.id === id);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                orderItems.push({ ...menuItem, quantity: 1 });
+            }
+            renderOrder();
+        }
+
+        // Update item quantity
+        function updateQuantity(id, change) {
+            orderItems = orderItems.map(item => {
+                if (item.id === id) {
+                    const newQuantity = item.quantity + change;
+                    return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
+                }
+                return item;
+            }).filter(Boolean);
+            renderOrder();
+        }
+
+        // Remove item
+        function removeItem(id) {
+            orderItems = orderItems.filter(item => item.id !== id);
+            renderOrder();
+        }
+
+        // Reset order
+        function resetOrder() {
+            orderItems = [];
+            document.getElementById('customerName').value = '';
+            document.getElementById('paymentAmount').value = '';
+            if (document.getElementById('cardNumber')) {
+                document.getElementById('cardNumber').value = '';
+            }
+            if (document.getElementById('cardHolder')) {
+                document.getElementById('cardHolder').value = '';
+            }
+            if (document.getElementById('cardExpiry')) {
+                document.getElementById('cardExpiry').value = '';
+            }
+            renderOrder();
+        }
+
+        // Print receipt
+        function printReceipt() {
+            const customerName = document.getElementById('customerName').value;
+            const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            if (orderItems.length === 0) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Belum ada pesanan. Silakan tambahkan menu terlebih dahulu.",
+                  });
+                return;
+            }
+            
+            if (!customerName) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Silakan masukkan nama pelanggan.",
+                  });
+                return;
+            }
+
+            if (activePaymentMethod === 'cash') {
+                const payment = parseFloat(document.getElementById('paymentAmount').value) || 0;
+                if (payment < total) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Jumlah pembayaran kurang dari total pesanan.",
+                      });
+                    return;
+                }
+            } else {
+                const cardNumber = document.getElementById('cardNumber').value;
+                if (!cardNumber) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Silakan masukkan nomor kartu atau ID transaksi.",
+                      });
+                    return;
+                }
+                
+                if ((activePaymentMethod === 'credit' || activePaymentMethod === 'debit')) {
+                    const cardHolder = document.getElementById('cardHolder').value;
+                    const cardExpiry = document.getElementById('cardExpiry').value;
+                    if (!cardHolder || !cardExpiry) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Silakan lengkapi informasi kartu.",
+                          });
+                        return;
+                    }
+                }
+            }
+
+            // Success message
+            Swal.fire({
+                icon: "success",
+                title: (`Pembayaran berhasil! Metode: ${getPaymentMethodName(activePaymentMethod)}`),
+              });
+            
+            // Generate receipt in console (for demonstration)
+            console.log('=== STRUK PEMBAYARAN ===');
+            console.log(`Pelanggan: ${customerName}`);
+            console.log(`Metode Pembayaran: ${getPaymentMethodName(activePaymentMethod)}`);
+            console.log('----------------------');
+            orderItems.forEach(item => {
+                console.log(`${item.name} x${item.quantity}: Rp ${(item.price * item.quantity).toLocaleString()}`);
+            });
+            console.log('----------------------');
+            console.log(`Total: Rp ${total.toLocaleString()}`);
+            
+            if (activePaymentMethod === 'cash') {
+                const payment = parseFloat(document.getElementById('paymentAmount').value) || 0;
+                console.log(`Bayar: Rp ${payment.toLocaleString()}`);
+                console.log(`Kembali: Rp ${(payment - total).toLocaleString()}`);
+            } else {
+                console.log(`Referensi: ${document.getElementById('cardNumber').value}`);
+            }
+            
+            // Reset the order after successful payment
+            resetOrder();
+        }
+
+        // Get payment method name for display
+        function getPaymentMethodName(method) {
+            const methodNames = {
+                'cash': 'Tunai',
+                'debit': 'Kartu Debit',
+                'credit': 'Kartu Kredit',
+                'qris': 'QRIS',
+                'ewallet': 'E-Wallet'
+            };
+            return methodNames[method] || method;
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+
+    <script src="Sweet-Alert-2/package/dist/sweetalert2.all.min.js"></script>
+</body>
+</html>
